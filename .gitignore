@@ -1,0 +1,21 @@
+# В git — только текст: исходники, скрипты, инструкции.
+# Бинарники (STL, 3MF, GLB, USDZ, PNG) публикуются на площадках моделей и собираются по BUILD.md.
+*
+!*/
+!*.md
+!*.py
+!*.scad
+!*.json
+!*.sh
+!LICENSE
+!02_molecules/*/*.png
+!.gitignore
+
+__pycache__/
+.idea/
+.venv/
+publishing/
+00_source/asm3/
+00_source/pkg/
+00_source/v25/
+00_source/v26/
