@@ -1,7 +1,6 @@
 import trimesh, numpy as np, os, sys
-from safeio import may_write
 from pxr import Usd, UsdGeom, Sdf, Gf, Vt, UsdUtils, UsdShade
-def go(glb, out, faces=6000):
+def go(glb, out, faces=15000):
     sc=trimesh.load(glb); tmp=out.replace(".usdz",".usdc"); stage=Usd.Stage.CreateNew(tmp)
     UsdGeom.SetStageUpAxis(stage,UsdGeom.Tokens.z); UsdGeom.SetStageMetersPerUnit(stage,0.001)
     root=UsdGeom.Xform.Define(stage,"/mol"); stage.SetDefaultPrim(root.GetPrim()); mats={}
@@ -21,5 +20,4 @@ def go(glb, out, faces=6000):
     stage.GetRootLayer().Save(); UsdUtils.CreateNewUsdzPackage(Sdf.AssetPath(tmp),out); os.remove(tmp)
 if __name__=="__main__":
     for n in sys.argv[1:]:
-        if not may_write(f"pkg/02_molecules/{n}/{n}.usdz"): continue
         go(f"pkg/02_molecules/{n}/{n}.glb", f"pkg/02_molecules/{n}/{n}.usdz"); print(n, round(os.path.getsize(f"pkg/02_molecules/{n}/{n}.usdz")/1e6,1),"MB", flush=True)

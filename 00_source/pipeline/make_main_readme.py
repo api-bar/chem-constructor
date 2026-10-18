@@ -1,7 +1,6 @@
 # Генерация общего README.md из asm3/*.json
 import json, os
 from docs import NAME
-from safeio import write_text
 mols=["H2","CO2","CH4_methane","C2H2_acetylene","C2H4_ethylene","NH3_ammonia","H2O_water","C2H5OH_ethanol","CH3COOH_acetic_acid",
       "Gly_glycine","Ala_alanine","Val_valine","Ser_serine","Asn_asparagine","Thr_threonine","Leu_leucine","Asp_aspartic_acid","Lys_lysine","methyl_acetate_ester","Gly-Gly_dipeptide"]
 rows=[]
@@ -10,23 +9,15 @@ for n in mols:
     rows.append(f"| [{NAME[n]}](02_molecules/{n}/README.md) | {len(i['parts'])} | {('L ('+ch+')') if ch!='—' else '—'} | `{n}.glb`, `{n}.usdz` |")
 README=f"""# Химический конструктор «атомы + связи» — v1.0
 
-> **EN:** Printable molecular model kit "atoms + bonds" (tested on Bambu Lab A1). Atoms are balls with keyed sockets at real valence angles;
-> bonds are rods with twisted keys whose profile encodes bond order (single / double / triple). Scale 90 mm/Å, real bond lengths and angles.
-> 20 assembled molecules (H₂O, CH₄, ethanol, acetic acid, 9 amino acids, Gly-Gly dipeptide…), per-color plates, OpenSCAD source.
-> Print `04_tester/00_test_prism_and_keys.3mf` first. License: [CC BY-NC-SA 4.0](LICENSE).
-
 Детский/учебный конструктор молекул для 3D-печати (Bambu Lab A1). Атомы — шары с пазами под правильными валентными углами,
 связи — стержни с винтовыми ключами. Тип паза кодирует **кратность связи** (одинарная / двойная / тройная), цвет — элемент (CPK).
 Масштаб 90 мм/Å (пресет `toddler`), длины связей и валентные углы — реальные.
-
-> **Что в репозитории.** Здесь исходники (`00_source/`), документация и PNG-превью. STL, 3MF, GLB и USDZ в git не хранятся —
-> они лежат в ассетах релиза v1.0. Как получить полную папку набора — см. [docs/RELEASE.md](docs/RELEASE.md).
 
 ## Структура папки
 
 | Папка | Что внутри |
 |---|---|
-| `00_source/` | исходник `chem_constructor.scad` (OpenSCAD), скрипты сборки молекул (`chemlib.py`, `molecules.py`, `assemble3.py`, кэш посадок) и конвейер `pipeline/` ([PIPELINE.md](00_source/PIPELINE.md)) |
+| `00_source/` | исходник `chem_constructor.scad` (OpenSCAD) и скрипты проверки/сборки (`chemlib.py`, `molecules.py`, `assemble3.py`, кэш посадок) |
 | `01_components/` | каждая деталь отдельно: STL + PNG |
 | `02_molecules/<молекула>/` | модель в сборе (`.glb` — Blender, `.usdz` — iPhone AR), картинка, `README.md` с деталями, пластинами и пошаговой сборкой, `plates/` — пластины по цветам только для этой молекулы |
 | `03_plates_by_color/full_set_main_molecules/` | пластины по цветам на весь основной набор (14 молекул, 227 деталей) |
@@ -100,15 +91,5 @@ README=f"""# Химический конструктор «атомы + связ
 ## Проверки, через которые прошла каждая деталь
 герметичность сетки, одно тело, отсутствие послойных «островов» (печать без поддержек), профиль зазора ключ↔паз по глубине,
 булева посадка каждой пары «паз ↔ конец связи», сборка молекул без пересечений, проверка хиральности L-аминокислот.
-
-## Проверено печатью
-Напечатаны на Bambu Lab A1 и проверены вручную: атомы C, O, H, N; связи одинарные, двойные и тройные.
-Из напечатанных деталей собраны H₂, H₂O, CH₄, CO₂, формальдегид H₂CO, муравьиная HCOOH и уксусная CH₃COOH кислоты (фото — на страницах набора на площадках моделей).
-
-## Лицензия
-[CC BY-NC-SA 4.0](LICENSE) — можно печатать, изменять и делиться с указанием автора, на тех же условиях; коммерческое использование запрещено.
-
-## Безопасность
-Это не сертифицированная игрушка. Печатные детали могут ломаться с образованием мелких частей — детям играть только под присмотром взрослых.
 """
-write_text("pkg/README.md", README); print("ok")
+open("pkg/README.md","w").write(README); print("ok")
