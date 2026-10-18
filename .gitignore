@@ -6,15 +6,12 @@
 !*.py
 !*.json
 !*.sh
+!*.scad
 !LICENSE
 !.gitignore
 !02_molecules/*/*.png
 !05_flex_bonds/*.png
 !07_v2_new_elements/*.png
-
-# Параметрический исходник 00_source/chem_constructor.scad в публичную ветку не попадает
-# (бизнес-план: покупатель получает STL/3MF, параметрика остаётся у автора). Файл лежит локально.
-# Чтобы всё-таки опубликовать — добавить строку `!*.scad` выше.
 
 __pycache__/
 .idea/
