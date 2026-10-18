@@ -1,6 +1,6 @@
 # План публикации v1.0
 
-Автор: **mrYush** · GitHub: [mrYush/chem-constructor](https://github.com/mrYush/chem-constructor) · лицензия: CC BY-NC-SA 4.0.
+Автор: **mrYush** · GitHub: [api-bar/chem-constructor](https://github.com/api-bar/chem-constructor) · лицензия: CC BY-NC-SA 4.0.
 
 В git — только исходники и документация. Бинарники (STL, 3MF, GLB, USDZ) и фото — на площадках моделей:
 MakerWorld (основная, профили печати для Bambu), Printables, Thingiverse. Рабочие файлы для загрузки — в `publishing/` (не в git).
