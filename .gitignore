@@ -1,21 +1,27 @@
-# В git — только текст: исходники, скрипты, инструкции.
-# Бинарники (STL, 3MF, GLB, USDZ, PNG) публикуются на площадках моделей и собираются по BUILD.md.
+# Набор v2.0-beta5. v1.0 заморожен на теге v1.0; по готовности v2 вливается в main.
+# В git — только текст и PNG-превью. Бинарники (STL, 3MF, GLB, USDZ) на GitHub не публикуются, см. docs/RELEASE.md.
 *
 !*/
 !*.md
 !*.py
-!*.scad
 !*.json
 !*.sh
+!*.scad
 !LICENSE
-!02_molecules/*/*.png
 !.gitignore
+!02_molecules/*/*.png
+!05_flex_bonds/*.png
+!07_v2_new_elements/*.png
 
 __pycache__/
 .idea/
 .venv/
 publishing/
-00_source/asm3/
+dist/
+00_source/asm_v2/
 00_source/pkg/
-00_source/v25/
-00_source/v26/
+00_source/pkg_flex2/
+00_source/v2/
+00_source/v2flex/
+00_source/v2flex2/
+00_source/v2lbl/

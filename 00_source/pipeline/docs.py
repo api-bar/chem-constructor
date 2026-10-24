@@ -1,7 +1,6 @@
 import json, os, re, trimesh, numpy as np
 from collections import Counter, OrderedDict
 from molecules import MOL, CHIRAL
-from safeio import write_text, may_write
 NAME={"H2":"Водород H₂","CO2":"Углекислый газ CO₂","CH4_methane":"Метан CH₄","C2H2_acetylene":"Ацетилен C₂H₂","C2H4_ethylene":"Этилен C₂H₄",
  "NH3_ammonia":"Аммиак NH₃","H2O_water":"Вода H₂O","C2H5OH_ethanol":"Этанол C₂H₅OH","CH3COOH_acetic_acid":"Уксусная кислота CH₃COOH",
  "Gly_glycine":"Глицин NH₂CH₂COOH (Gly)","Ala_alanine":"L-Аланин (Ala)","Val_valine":"L-Валин (Val)","Ser_serine":"L-Серин (Ser)","Asn_asparagine":"L-Аспарагин (Asn)",
@@ -39,7 +38,7 @@ def plates(folder, counts, bed=240):
                 c=m.copy(); c.apply_translation([x,y,0]); c.visual.face_colors=list(col)+[255]; k+=1; s.add_geometry(c,node_name=f"{p}_{k}"); x+=e[0]+10; rowh=max(rowh,e[1])
         scenes.append(s)
         for i,sc in enumerate(scenes):
-            fn=f"{fname}.3mf" if len(scenes)==1 else f"{fname}_p{i+1}.3mf"; may_write(f"{folder}/{fn}") and sc.export(f"{folder}/{fn}")
+            fn=f"{fname}.3mf" if len(scenes)==1 else f"{fname}_p{i+1}.3mf"; sc.export(f"{folder}/{fn}")
             files.append((fn,fil,", ".join(f"{PN[p]}×{n}" for p,n in items) if len(scenes)==1 else f"часть {i+1}"))
     return files
 def steps_text(n, info):
@@ -61,7 +60,7 @@ def steps_text(n, info):
 def molecule_doc(n):
     info=json.load(open(f"asm3/{n}.json")); d=f"pkg/02_molecules/{n}"; counts=Counter(info["parts"])
     files=plates(f"{d}/plates", counts)
-    L=[f"# {NAME.get(n,n)}","",f"![]({n}.png)","",f"Файлы `{n}.glb` (Blender), `{n}.usdz` (iPhone AR) и `plates/` (пластины по цветам) входят в ассет релиза `chem_constructor_v1.0_molecules_models.zip`, см. [docs/RELEASE.md](../../docs/RELEASE.md).","",
+    L=[f"# {NAME.get(n,n)}","",f"![]({n}.png)","",f"Файлы: `{n}.glb` (Blender, просмотр), `{n}.usdz` (iPhone AR), `plates/` — пластины по цветам.","",
        "## Детали","","| Деталь | Кол-во |","|---|---|"]+[f"| {PN[p]} | {c} |" for p,c in counts.most_common()]+[f"| **всего** | **{sum(counts.values())}** |","",
        "## Пластины для печати","","| Файл | Филамент | Состав |","|---|---|---|"]+[f"| `plates/{f}` | {fil} | {comp} |" for f,fil,comp in files]+["",
        "## Сборка","","Каждую связь вставлять в паз и ввинчивать **по часовой стрелке** (если смотреть на атом), до щелчка защёлки. "
@@ -70,7 +69,7 @@ def molecule_doc(n):
         L+=["",f"**Хиральность Cα: {info['chirality']} (L-аминокислота).** Проверка: держите молекулу так, чтобы H у Cα смотрел от вас; "
             "тогда N → C(OOH) → боковая цепь идут **против часовой стрелки**. Если по часовой — вы собрали D-форму: поменяйте местами H и боковую цепь (пазы T2 и T3)."]
     L+=["",f"Проверено булевой сборкой из печатных STL: пересечений деталей нет."]
-    write_text(f"{d}/README.md", "\n".join(L)); return counts
+    open(f"{d}/README.md","w").write("\n".join(L)); return counts
 if __name__=="__main__":
     import sys
     for n in sys.argv[1:]: molecule_doc(n); print(n,end=" ",flush=True)

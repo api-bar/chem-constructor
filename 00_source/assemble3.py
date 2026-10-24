@@ -58,5 +58,5 @@ if __name__=="__main__":
     sc=trimesh.Scene()
     for (pn,M,col),m in zip(parts,meshes):
         c=COL.get(col,COL.get(pn,(200,200,200))); m.visual=trimesh.visual.ColorVisuals(m,face_colors=list(c)+[255]); sc.add_geometry(m,node_name=f"{pn}_{len(sc.geometry)}")
-    import os; os.makedirs("asm3",exist_ok=True); sc.export(f"asm3/{name}.glb"); json.dump(info,open(f"asm3/{name}.json","w"),ensure_ascii=False,indent=1)
+    import os; os.makedirs("asm_v2",exist_ok=True); sc.export(f"asm_v2/{name}.glb"); json.dump(info,open(f"asm_v2/{name}.json","w"),ensure_ascii=False,indent=1)
     print(name, "деталей",len(parts), "хиральность",info.get("chirality","—"), "столкновения:", bad or "нет")

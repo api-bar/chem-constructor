@@ -27,13 +27,13 @@ SCALE = TD ? 90 : 40;       // мм на 1 Å
 // ---------- Допуски и замок ----------
 clr      = TD ? 0.30 : 0.25;   // зазор на сторону для FDM (подбирать по fit_test)
 wall     = TD ? 4.0  : 2.5;    // толщина губы, за которую заходит ключ
-key_len  = TD ? 9.0  : 5.0;    // длина витой лопасти одинарного ключа внутри атома
+key_len  = TD ? 12.0 : 6.0;    // v2: длина цилиндра одинарного ключа внутри атома (L = wall + clr + key_len)
 // закрутка одинарных ключей считается по классу: ctw(c)
 neck_d   = TD ? 7.0  : 3.5;    // диаметр шейки, проходящей сквозь губу
 lip_chamfer = TD ? 1.0 : 0.6;  // фаска входа паза
 snap_clr  = TD ? 0.45 : 0.3;   // зазор витой щели
 tip_clr   = TD ? 0.15 : 0.10;  // целевой зазор по ширине в губе при полностью вставленном ключе (клин конусного ключа)
-slot_tip_clr = TD ? 0.25 : 0.18;  // зазор щели у дна: щель коническая (клин в глубине), у входа snap_clr
+slot_tip_clr = TD ? 0.15 : 0.12;  // зазор щели у дна: клин у кончика лопасти (v1-style); у входа snap_clr
 // Защёлка «бугорок–лунка» У ОСНОВАНИЯ: бугорок на плоской стороне лопасти рядом с манжетой, лунка в губе паза
 // (губа — наружная стенка, её не режут соседние пазы). Податливость даёт наклон связи / изгиб упругого стержня:
 // зазор кончика 0.45 на плече лопасти + зазор губы 0.3. Высота бугорка ~0.8.
@@ -41,6 +41,8 @@ det_h   = TD ? 0.9 : 0.55;     // высота бугорка над плоск�
 det_d   = TD ? 3.6 : 2.4;      // диаметр сферы бугорка
 det_pos = TD ? 4.5 : 2.8;      // глубина центра бугорка/лунки от поверхности атома (внутри губы)
 det_gap = 0.25;                // зазор лунки
+det_lip = det_gap + 0.30;      // v2: губа винтового входного канала перед лункой (натяг 0.3 мм на сжатии пластика)
+det_lip_len = TD ? 1.5 : 1.0;  // длина губы вдоль винта
 
 // ---------- Двойная связь: массивный витой ключ (класс A, O=O) ----------
 dbl_w     = TD ? 28 : 14;      // двойная 28×7
@@ -55,11 +57,27 @@ ANG_H2O = 104.5;               // угол H–O–H
 
 // ---------- Стержни ----------
 rod_d        = TD ? 12.0 : 5.0;
-rod_neck_d   = TD ? 9.0  : 3.6;
-rod_neck_frac= 0.45;
+rod_neck_d   = TD ? 7.0  : 3.0;   // v2: тоньше — связь заметно гнётся и возвращается
+rod_neck_frac= 0.70;             // v2: утонение на 70% длины стержня
 rod_min_for_neck = TD ? 40 : 20;
-rod_flat     = 0;              // плоскость снизу стержня — только для печати лёжа; связи печатаем стоя
-
+flex_min_len    = TD ? 24 : 12;   // гибкие типы (bellows/slots/spring) включаются уже на коротких стержнях (O–H 38 мм)
+rod_flat     = 0;
+FLEX = "spring";                // тип гибкого участка стержня: "slots" (трубка с прорезями + внутренняя пружина) | "spring" (5-заходная решётчатая пружина на тонком сердечнике) | "neck" (устар., утонение)
+flex_wall    = TD ? 1.5 : 1.0;  // стенка трубки slots
+flex_pitch   = TD ? 4.0 : 2.5;  // шаг прорезей
+// slots: внутренний гибкий элемент — 3-заходная спираль вокруг сердечника, соединена с трубкой только через торцевые пробки:
+//   задаёт плавную кривизну (нет излома в одной прорези), держит растяжение, при трещине перемычки связь не распадается
+sl_core_d    = TD ? 4.0 : 2.4;  // сердечник внутри трубки
+sl_rib       = TD ? 1.6 : 1.0;  // сечение внутренней ленты
+sl_n         = 3;               // число внутренних лент
+sl_clr       = TD ? 0.8 : 0.5;  // зазор лента↔трубка
+// spring: 5 лент 2×2 по правой спирали 45° + 5 тонких лент по левой спирали на том же радиусе — решётка (стент):
+//   ленты сплавлены в перекрестьях, излом требует разрыва нескольких лент, напряжение распределяется по всей длине
+sp_core_d    = TD ? 3.0 : 1.8;  // тонкий сердечник
+sp_n         = 5;               // заходов основной спирали
+sp_rib       = TD ? 2.0 : 1.2;  // сечение основной ленты
+sp_xrib      = TD ? 1.4 : 0.9;  // сечение встречной (связывающей) ленты
+sp_xn        = 5;               // заходов встречной спирали
 // ---------- Атомы ----------
 flat_cut = TD ? 3.0 : 2.0;
 USE_COV_RADII = false;      // true: радиус шара = K_COV × ковалентный радиус -> видимые стержни пропорциональны реальным длинам
@@ -68,7 +86,7 @@ RCOV = [["C",0.76],["O",0.66],["N",0.71],["H",0.31]];   // Å
 R_C = USE_COV_RADII ? K_COV*0.76*SCALE : (TD ? 28 : 15);
 R_O = USE_COV_RADII ? K_COV*0.66*SCALE : (TD ? 26 : 14);
 R_N = USE_COV_RADII ? K_COV*0.71*SCALE : (TD ? 26 : 14);
-R_H = USE_COV_RADII ? K_COV*0.31*SCALE : (TD ? 20 : 10);
+R_H = USE_COV_RADII ? K_COV*0.31*SCALE : (TD ? 22 : 11);   // v2: Ø44 — стенка у устья круглого паза Ø15.6
 lp_bump = false;            // неподелённые пары — всегда отдельные заглушки (для малышей вклеиваются)
 glue_groove = true;         // кольцевая канавка на шейке ключа — резервуар под клей
 groove_w = TD ? 1.5 : 1.0;  groove_d = TD ? 0.35 : 0.25;
@@ -95,7 +113,17 @@ LABEL_DIR = [cos(60)*cos(30), sin(60)*cos(30), sin(30)];  // между гнёз
 // v0.17: профиль паза кодирует КРАТНОСТЬ связи, а не класс электроотрицательности.
 // Все одинарные — один профиль SGL (A=B=C), двойная — dbl_w×dbl_t, тройная — TRP (зарезервировано).
 SGL_W = TD ? 18 : 9;  SGL_T = TD ? 6 : 3.2;      // одинарная 18×6
-TRP_W = TD ? 26 : 13; TRP_T = TD ? 10 : 5;   // тройная 26×10
+TRP_W = TD ? 15 : 7.5; TRP_T = TRP_W;   // v2: тройная — треугольник Рёло шириной 15 (вписанная окружность Ø12.7 < цилиндра одинарной Ø14)
+// ---------- v2: одинарная связь — цельный цилиндр с бугорками + байонетный паз (входные бороздки с губой -> кольцевая борозда) ----------
+peg_d     = TD ? 15 : 7.5;      // диаметр цилиндра ключа
+peg_bump  = TD ? 0.8 : 0.5;     // высота бугорков (полусферы) над цилиндром
+peg_bump_d= TD ? 2.6 : 1.6;     // диаметр сферы бугорка
+peg_nb    = 3;                  // число бугорков (и входных бороздок)
+peg_clr   = TD ? 0.30 : 0.22;   // радиальный зазор цилиндр-паз
+peg_lip   = TD ? 0.90 : 0.55;   // губа: подъём дна входной бороздки перед кольцевой бороздой; натяг = peg_lip - 0.6 (зазор над бугорком) = 0.3 мм — на сжатии пластика
+peg_lip_len = TD ? 1.5 : 1.0;   // длина губы вдоль оси
+peg_ch_w  = TD ? 3.2 : 2.0;     // ширина входной бороздки
+peg_collar= peg_d - 0.2;        // без раструба — цилиндр сам уходит в паз
 trp_len   = TD ? 22 : 11;
 trp_twist = HAND * twist_for(TRP_W, trp_len, LAM);
 L_NN = 1.10;                   // N≡N, Å
@@ -129,6 +157,24 @@ module stadium(w, t) {
         translate([-(w-t)/2, 0]) circle(d = t);
     }
 }
+// Линза (двояковыпуклая): ширина w по X, толщина t по Y — пересечение двух окружностей
+module lens(w, t) {
+    R = (w*w + t*t)/(4*t);
+    intersection() { translate([0,  R - t/2]) circle(r = R, $fn = 180); translate([0, -(R - t/2)]) circle(r = R, $fn = 180); }
+}
+// Треугольник Рёло постоянной ширины w: вершины на радиусе w/sqrt(3) под углами 90, 210, 330
+module reuleaux(w) {
+    Rc = w/sqrt(3);
+    intersection_for (a = [90, 210, 330]) translate([Rc*cos(a), Rc*sin(a)]) circle(r = w, $fn = 180);
+}
+// Профиль по имени: "stadium" | "lens" | "reuleaux"
+module profile(p, w, t) {
+    if (p == "lens") lens(w, t); else if (p == "reuleaux") reuleaux(w); else stadium(w, t);
+}
+// Углы (в плоскости сечения) лунок защёлки и бугорка для профиля; радиус посадки бугорка от центра
+function det_angles(p) = p == "reuleaux" ? [-90, 30, 150] : [90, -90];
+function det_bump_angle(p) = p == "reuleaux" ? -90 : 90;
+function det_radius(p, w, t) = p == "reuleaux" ? w*(1 - 1/sqrt(3)) : t/2;
 
 // Ориентировать children() с оси +Z на вектор v
 module orient(v) {
@@ -142,17 +188,17 @@ module orient(v) {
 //  Витой ключ и винтовой паз — единый механизм для всех связей
 //  Лопасть (канонический кадр): кончик в z=0, основание в z=len (+extra)
 // =====================================================================
-module tw_blade(w, t, len, twist, ew = 0, et = 0, extra = 0, ew_top = -1, et_top = -1) {
+module tw_blade(w, t, len, twist, ew = 0, et = 0, extra = 0, ew_top = -1, et_top = -1, p = "stadium") {
     h = len + extra;
     // сечение у кончика (z=0): w+ew × t+et; у входа (z=h): w+ew_top × t+et_top (если заданы) — коническая щель
     // ВАЖНО: scale в linear_extrude с twist действует в глобальных осях после поворота, поэтому масштаб — только равномерный
     sc = ew_top < 0 ? 1 : (w + ew_top)/(w + ew);
     linear_extrude(height = h, twist = twist * h / len, slices = max(12, round(h*2)), scale = sc)
-        stadium(w + ew, t + et);
+        profile(p, w + ew, t + et);
 }
 // Ключ: 0 — поверхность шара, уходит внутрь по +Z. Шейка сквозь губу (+ канавка под клей), витая лопасть,
 // кончик расщеплён на две лапки с витым утолщением -> защёлка в донной камере.
-module tw_key_end(w, t, len, twist, neck, flen = 0, gap = 0, lip = 0, r_atom = 0) {
+module tw_key_end(w, t, len, twist, neck, flen = 0, gap = 0, lip = 0, r_atom = 0, p = "stadium") {
     // Лопасть непрерывна от поверхности шара (z=0) до кончика (z = wall+clr+len), закрутка та же по всей длине.
     // КОНУСНЫЙ КЛЮЧ: у кончика номинальное сечение, к основанию шире на 2*(snap_clr - tip_clr) -> клин в губе.
     // Манжета КРУГЛАЯ: конус 45° от стержня до Ø(w+g+1), торец вогнут по сфере атома (r_atom) — закрывает
@@ -160,11 +206,11 @@ module tw_key_end(w, t, len, twist, neck, flen = 0, gap = 0, lip = 0, r_atom = 0
     L = wall + clr + len;  g = 2*(snap_clr - tip_clr);
     dc = w + g + 0.1;  hc = (dc - rod_d)/2;   // раструб по ширине лопасти (+0.1, чтобы грани не совпадали — CGAL)
     translate([0, 0, L]) rotate([180, 0, 0]) {
-        tw_blade(w, t, len, twist, 0, 0, wall + clr + 0.03, g, g);
+        tw_blade(w, t, len, twist, 0, 0, wall + clr + 0.03, g, g, p);
         // бугорок защёлки: в локальной системе ЗАКРУЧЕННОЙ лопасти на своей высоте (угол сечения = -twist*z'/len)
-        zb = L - det_pos;
-        translate([0, 0, zb]) rotate(-twist * zb / len)
-            translate([0, (t + g*zb/L)/2 - (det_d/2 - det_h), 0]) sphere(d = det_d);
+        zb = L - det_pos;  rb_det = det_radius(p, w, t) * (1 + (g*zb/L)/w);
+        translate([0, 0, zb]) rotate(-twist * zb / len + det_bump_angle(p))
+            translate([rb_det - (det_d/2 - det_h), 0, 0]) sphere(d = det_d);
 
     }
     rb = dc/2;
@@ -178,49 +224,124 @@ module tw_key_end(w, t, len, twist, neck, flen = 0, gap = 0, lip = 0, r_atom = 0
     }
 }
 // Паз (вычитаемая геометрия), ось +Z, r — радиус шара. phase — поворот витой щели (для блокировок)
-module tw_socket(w, t, len, twist, neck, r, phase = 0) {
+module tw_socket(w, t, len, twist, neck, r, phase = 0, p = "stadium") {
     tip = r - wall - clr - len;
     // равномерная щель с зазором snap_clr; клин обеспечивает конусный ключ (см. tw_key_end)
     // коническая щель: у дна зазор slot_tip_clr, у входа snap_clr (равномерный масштаб — см. tw_blade)
     translate([0, 0, tip - tip_clr]) rotate(phase)
-        tw_blade(w, t, len, twist, 2*slot_tip_clr, 2*slot_tip_clr, wall + clr + 4 + tip_clr, 2*snap_clr, 2*snap_clr);
+        tw_blade(w, t, len, twist, 2*slot_tip_clr, 2*slot_tip_clr, wall + clr + 4 + tip_clr, 2*snap_clr, 2*snap_clr, p);
     // зенковка устья по форме щели (+0.6 мм, 1 мм), повёрнута на угол щели у поверхности — прячется под раструб
     mouth_ang = phase - twist * (len + wall + clr + 2*tip_clr) / len;
-    translate([0, 0, r - 1]) linear_extrude(1 + 2, scale = 1.06) rotate(mouth_ang) stadium(w + 2*snap_clr + 0.6, t + 2*snap_clr + 0.6);
+    translate([0, 0, r - 1]) linear_extrude(1 + 2, scale = 1.06) rotate(mouth_ang) profile(p, w + 2*snap_clr + 0.6, t + 2*snap_clr + 0.6);
     // лунка защёлки: напротив бугорка при полностью вставленном ключе (кончик ключа на z = tip)
     // лунка: та же высота над кончиком, что у бугорка, повёрнута на угол щели на этой высоте
     zr = (wall + clr + len) - det_pos + tip_clr;                     // высота над началом витой щели
     hs = wall + clr + 4 + tip_clr + len;                              // полная высота витой щели
     cz = slot_tip_clr + (snap_clr - slot_tip_clr) * zr / hs;          // зазор щели на этой высоте (коническая)
-    translate([0, 0, tip - tip_clr]) translate([0, 0, zr]) rotate(phase - twist * zr / len)
-        translate([0, t/2 + cz - (det_d/2 - det_h), 0]) sphere(d = det_d + 2*det_gap);
-    // зеркальная лунка на той же глубине в противоположной стенке: ключ садится любой стороной
-    translate([0, 0, tip - tip_clr]) translate([0, 0, zr]) rotate(phase - twist * zr / len)
-        translate([0, -(t/2 + cz - (det_d/2 - det_h)), 0]) sphere(d = det_d + 2*det_gap);
+    for (a = det_angles(p)) {
+        rr = det_radius(p, w, t) + cz - (det_d/2 - det_h);                  // радиус центра бугорка/лунки
+        translate([0, 0, tip - tip_clr]) translate([0, 0, zr]) rotate(phase - twist * zr / len + a)
+            translate([rr, 0, 0]) sphere(d = det_d + 2*det_gap);             // лунка
+        // v2: винтовой входной канал под бугорок — от устья до лунки; перед лункой губа (канал смещён внутрь на det_lip)
+        z0 = zr + det_d/2 + det_gap - 0.3;                                   // верх лунки (с перекрытием)
+        z1 = z0 + det_lip_len;
+        translate([0, 0, tip - tip_clr + z0]) linear_extrude(det_lip_len + 0.01, twist = twist * det_lip_len / len, slices = 8)
+            rotate(phase - twist * z0 / len + a) translate([rr - det_lip, 0]) circle(d = det_d + 2*det_gap);        // губа
+        translate([0, 0, tip - tip_clr + z1]) linear_extrude(hs - z1 + 3, twist = twist * (hs - z1 + 3) / len, slices = max(8, round((hs - z1)*2)))
+            rotate(phase - twist * z1 / len + a) translate([rr, 0]) circle(d = det_d + 2*det_gap);                   // канал полной глубины до устья
+    }
 }
 
 // Подпись связи на стержне (вдоль оси, на боку Ø rod_d), глубина eng_depth
+// ---------- v2: гибкие участки стержня ----------
+// Решётчатая пружина: n лент правой спирали 45° + xn тонких лент левой спирали 45° на том же радиусе, сердечник d_core.
+// Используется и как spring (на всю Ø rod_d), и как внутренний элемент slots (меньшего радиуса).
+module lattice_spring(len, r_out, d_core, n, rib, xn, xrib) {
+    rm = r_out - rib/2;                                           // средний радиус лент
+    pitch = 2*PI*rm;                                              // угол подъёма 45°
+    cylinder(d = d_core, h = len);
+    linear_extrude(height = len, twist = HAND * 360 * len / pitch, slices = round(len*2))
+        for (k = [0 : n - 1]) rotate(k*360/n) translate([rm, 0]) square([rib, rib], center = true);
+    linear_extrude(height = len, twist = -HAND * 360 * len / pitch, slices = round(len*2))
+        for (k = [0 : xn - 1]) rotate(k*360/xn + 180/xn) translate([rm, 0]) square([xrib, xrib], center = true);
+}
+// Трубка с кольцевыми прорезями в шахматном порядке (living hinge) + внутренняя спираль на сердечнике
+module flex_slots(len) {
+    n = floor(len / flex_pitch); p = len / n; ro = rod_d/2; ri = ro - flex_wall;
+    difference() {
+        cylinder(d = rod_d, h = len);
+        translate([0, 0, -1]) cylinder(d = 2*ri, h = len + 2);
+        for (i = [1 : n - 1]) rotate(i % 2 == 0 ? 0 : 90)
+            for (a = [0, 180]) rotate(a) translate([0, 0, i*p]) {
+                rotate_extrude(angle = 150, $fn = 72) translate([ri - 1, -0.6]) square([ro - ri + 2, 1.2]);
+                for (e = [0, 150]) rotate(e) translate([ri - 1, 0, 0]) rotate([0, 90, 0]) cylinder(d = 1.2, h = ro - ri + 2, $fn = 16);   // скруглённые концы прорези
+            }
+    }
+    translate([0, 0, 0.3]) lattice_spring(len - 0.6, ri - sl_clr, sl_core_d, sl_n, sl_rib, sl_n, sl_rib*0.8);   // концы лент внутри торцевых дисков (без совпадающих граней)
+    cylinder(d = rod_d, h = 0.6); translate([0, 0, len - 0.6]) cylinder(d = rod_d, h = 0.6);   // торцевые диски: стык трубки, спирали и пробок
+}
+// Пятизаходная решётчатая пружина на тонком сердечнике
+module flex_spring(len) {
+    translate([0, 0, 0.3]) lattice_spring(len - 0.6, rod_d/2, sp_core_d, sp_n, sp_rib, sp_xn, sp_xrib);
+    cylinder(d = rod_d, h = 0.6); translate([0, 0, len - 0.6]) cylinder(d = rod_d, h = 0.6);   // торцевые диски для стыковки
+}
+module flex_section(len) {
+    if (FLEX == "slots") flex_slots(len);
+    else if (FLEX == "spring") flex_spring(len);
+    // конусные пробки 45° на обоих концах: стержень над полым участком печатается без мостика (любым концом вверх)
+    di = (FLEX == "spring" ? rod_d : rod_d - 2*flex_wall) + 0.02;  ri = di/2;
+    translate([0, 0, len - ri]) difference() { cylinder(d = di, h = ri); translate([0, 0, -0.01]) cylinder(d1 = di + 0.1, d2 = 0.01, h = ri + 0.02); }   // верх: полость сходится под 45°
+    difference() { cylinder(d = di, h = ri); translate([0, 0, -0.01]) cylinder(d1 = 0.01, d2 = di + 0.1, h = ri + 0.02); }                               // низ: полость раскрывается под 45°
+}
+// Подпись длины связи в ангстремах на боку стержня (вдоль оси), глубина eng_depth. На сторонах +Z и -Z — видна при любом повороте.
+function fmt2(x) = let(c = round(x*100), i = floor(c/100), f = c - 100*i) str(i, ".", f < 10 ? "0" : "", f);
 module rod_label(x1, x2, lbl, sz = 4.5) {
-    // стержень в середине утонён до rod_neck_d (если длиннее rod_min_for_neck) — гравируем на радиусе утонения
-    rr = (x2 - x1 + 4 + 2*(x2 - x1 + 4 > 0 ? 0 : 0)) > 0 ? ((x2 - x1) > rod_min_for_neck*rod_neck_frac - 4 ? rod_neck_d/2 : rod_d/2) : rod_d/2;
-    if (lbl != "") translate([(x1 + x2)/2, 0, rr - eng_depth]) linear_extrude(eng_depth + 0.5)
-        text(lbl, size = sz, font = FONT, halign = "center", valign = "center");
+    if (lbl != "") for (side = [0, 180]) rotate([side, 0, 0])
+        translate([(x1 + x2)/2, 0, rod_d/2 - eng_depth]) linear_extrude(eng_depth + 0.5)
+            text(lbl, size = sz, font = FONT, halign = "center", valign = "center");
 }
 // ---- одинарные (по классам) ----
-function hc_of(w) = (w + 2*(snap_clr - tip_clr) + 1 - rod_d)/2;   // высота круглой манжеты (конус 45° до Ø w+g+1)
-module socket(c, r)  tw_socket(cw(c), ct(c), key_len, ctw(c), neck_d, r);
-module key_end(c, r_atom = 0)    tw_key_end(cw(c), ct(c), key_len, ctw(c), neck_d, 0, 0, 0, r_atom);
+function hc_of(w) = (peg_collar - rod_d)/2;   // v2: высота круглой манжеты одинарной (конус 45° от стержня до Ø peg_collar)
+// v2: одинарный ключ — цилиндр Ø peg_d длиной L, разрезанный на пальцы, с кольцевым бугорком у кончика;
+// 0 — поверхность шара, уходит внутрь по +Z. Манжета круглая с седлом по сфере атома.
+module peg_end(r_atom = 0) {
+    L = wall + clr + key_len;  dc = peg_collar;  hc = (dc - rod_d)/2;
+    union() {
+        cylinder(d = peg_d, h = L - 1);
+        translate([0, 0, L - 1]) cylinder(d1 = peg_d, d2 = peg_d - 2, h = 1);                   // фаска кончика
+        for (i = [0 : peg_nb - 1]) rotate(i*360/peg_nb + 90)                                   // бугорки у основания (в губе паза)
+            translate([peg_d/2 - (peg_bump_d/2 - peg_bump), 0, det_pos]) sphere(d = peg_bump_d);
+        translate([0, 0, -hc]) cylinder(d1 = rod_d, d2 = dc, h = hc + 0.01);
+    }
+}
+// v2: байонетный круглый паз: отверстие; кольцевая борозда на глубине det_pos; peg_nb входных бороздок от устья до борозды,
+// дно которых перед бороздой поднято на peg_lip (губа); зенковка устья
+module round_socket(r) {
+    L = wall + clr + key_len;  tip = r - L;  rh = peg_d/2 + peg_clr;  zg = r - det_pos;     // zg — ось кольцевой борозды (det_pos от поверхности)
+    gd = peg_bump_d/2 + 0.5;   // радиус сечения борозды (бугорок + 0.5)
+    translate([0, 0, tip - tip_clr]) cylinder(d = 2*rh, h = L + tip_clr + 3);
+    translate([0, 0, zg]) rotate_extrude($fn = 96) translate([rh - gd + peg_bump + 0.3, 0]) circle(r = gd);   // кольцевая борозда (глубина peg_bump+0.3)
+    for (i = [0 : peg_nb - 1]) rotate(i*360/peg_nb + 90) {
+        // входная бороздка: полная глубина от устья до губы, затем губа (меньшая глубина) до борозды
+        z_lip = zg + gd - 0.3;                                                                   // губа начинается над кольцевой бороздой
+        translate([rh - 1, -peg_ch_w/2, z_lip + peg_lip_len]) cube([1 + peg_bump + 0.3, peg_ch_w, r - z_lip - peg_lip_len + 2]);   // полная глубина до устья
+        translate([rh - 1, -peg_ch_w/2, z_lip])               cube([1 + peg_bump + 0.3 - peg_lip, peg_ch_w, peg_lip_len + 0.01]);   // губа (мельче на peg_lip)
+    }
+    translate([0, 0, r - 0.5]) cylinder(d1 = 2*rh, d2 = 2*rh + 1, h = 0.5 + 2);
+}
+module socket(c, r)  round_socket(r);
+module key_end(c, r_atom = 0)    peg_end(r_atom);
 
 // ---- двойная (класс A, O=O) ----
-module dbl_blade(ew = 0, et = 0, extra = 0) tw_blade(dbl_w, dbl_t, dbl_len, dbl_twist, ew, et, extra);
-module dbl_key_end(r_atom = 0) tw_key_end(dbl_w, dbl_t, dbl_len, dbl_twist, dbl_neck, 0, 0, 0, r_atom);
-module trp_key_end(r_atom = 0) tw_key_end(TRP_W, TRP_T, trp_len, trp_twist, dbl_neck, 0, 0, 0, r_atom);
-module trp_socket(r, phase = 0) tw_socket(TRP_W, TRP_T, trp_len, trp_twist, dbl_neck, r, phase);
+module dbl_blade(ew = 0, et = 0, extra = 0) tw_blade(dbl_w, dbl_t, dbl_len, dbl_twist, ew, et, extra, -1, -1, "lens");
+module dbl_key_end(r_atom = 0) tw_key_end(dbl_w, dbl_t, dbl_len, dbl_twist, dbl_neck, 0, 0, 0, r_atom, "lens");
+module trp_key_end(r_atom = 0) tw_key_end(TRP_W, TRP_T, trp_len, trp_twist, dbl_neck, 0, 0, 0, r_atom, "reuleaux");
+module trp_socket(r, phase = 0) tw_socket(TRP_W, TRP_T, trp_len, trp_twist, dbl_neck, r, phase, "reuleaux");
 function single_cav_z(r) = (r - wall - clr - key_len/2) * cos(ANG_H2O/2);
 module dbl_socket(r, extra = 0) {
     tip = r - wall - clr - dbl_len;
     k = dbl_twist / dbl_len;
-    tw_socket(dbl_w, dbl_t, dbl_len, dbl_twist, dbl_neck, r, k * (single_cav_z(r) - tip) + extra);
+    tw_socket(dbl_w, dbl_t, dbl_len, dbl_twist, dbl_neck, r, k * (single_cav_z(r) - tip) + extra, "lens");
 }
 
 // =====================================================================
@@ -283,14 +404,21 @@ module bond(L_A, c1, r1, c2, r2, lbl = "") {
     rod_len = x2 - x1;
     assert(rod_len > 6, "Стержень слишком короткий: уменьшите радиусы атомов или увеличьте SCALE");
 
+    nl = rod_len * rod_neck_frac;  fx = x1 + (rod_len - nl)/2;      // гибкий участок: от fx длиной nl
     difference() {
         union() {
-            translate([x1 + hc_of(cw(c1)) - 0.5, 0, 0]) rotate([0, 90, 0]) cylinder(d = rod_d, h = rod_len - hc_of(cw(c1)) - hc_of(cw(c2)) + 1);
+            if (FLEX == "neck" ? rod_len <= rod_min_for_neck : rod_len <= flex_min_len)
+                translate([x1 + hc_of(cw(c1)) - 0.5, 0, 0]) rotate([0, 90, 0]) cylinder(d = rod_d, h = rod_len - hc_of(cw(c1)) - hc_of(cw(c2)) + 1);
+            else {
+                translate([x1 + hc_of(cw(c1)) - 0.5, 0, 0]) rotate([0, 90, 0]) cylinder(d = rod_d, h = fx - x1 - hc_of(cw(c1)) + 0.5 + 0.01);
+                translate([fx, 0, 0]) rotate([0, 90, 0]) flex_section(nl);
+                translate([fx + nl - 0.01, 0, 0]) rotate([0, 90, 0]) cylinder(d = rod_d, h = x2 - hc_of(cw(c2)) - (fx + nl) + 0.01 + 0.5);   // +0.5 перекрытие с конусом ключа
+            }
             translate([x1, 0, 0]) rotate([0, -90, 0]) key_end(c1, r1);
             translate([x2, 0, 0]) rotate([0,  90, 0]) key_end(c2, r2);
         }
-        // утонение в середине для упругости
-        if (rod_len > rod_min_for_neck) {
+        // утонение в середине для упругости (только FLEX == "neck")
+        if (FLEX == "neck" && rod_len > rod_min_for_neck) {
             nl = rod_len * rod_neck_frac;
             translate([x1 + (rod_len - nl)/2, 0, 0]) rotate([0, 90, 0])
                 difference() {
@@ -302,7 +430,7 @@ module bond(L_A, c1, r1, c2, r2, lbl = "") {
                     translate([0,0,nl - ch]) cylinder(d1 = rod_neck_d, d2 = rod_d + 0.02, h = ch);
                 }
         }
-        rod_label(x1 + hc_of(cw(c1)) + 2, x2 - hc_of(cw(c2)) - 2, lbl);
+        if (FLEX == "neck" ? rod_len <= rod_min_for_neck : rod_len <= flex_min_len) rod_label(x1 + hc_of(cw(c1)) + 2, x2 - hc_of(cw(c2)) - 2, lbl);
         // плоскость снизу для стола (только участок стержня между манжетами)
         if (rod_flat > 0) { hc1 = (cw(c1) + 2*(snap_clr-tip_clr) + 2 - rod_d)/2; hc2 = (cw(c2) + 2*(snap_clr-tip_clr) + 2 - rod_d)/2;
             translate([x1 + hc1, -10, -rod_d/2 - 10 + rod_flat]) cube([rod_len - hc1 - hc2, 20, 10]); }
@@ -448,7 +576,7 @@ module test_cube() {
 //  sp(=,=) — двойные C_D и -C_D (180°); sp(-,≡) — одинарный T1 + тройной напротив него (180°).
 //  Устья: одинарный T0 и -C_D касаются кромками (~0.4 мм) в одной точке поверхности, остальные не пересекаются.
 C_D = [-0.76604, 0.00000, -0.64279];
-C_D_PHASE = -55.5;   // поворот щели двойного паза углерода: задаёт плоскость этилена (двугранный угол меняется на 2×C_D_PHASE)
+C_D_PHASE = -61.5;   // поворот щели двойного паза углерода: задаёт плоскость sp2. Двугранный угол H–C=C–H = 2×(C_D_PHASE+61.5) (mod 180): при -61.5 этилен строго плоский (0°/180°); при -55.5 было 12° закрутки
 C_T = [-0.94281, -0.00000, 0.33333];
 module carbon() {
     difference() {
@@ -535,12 +663,12 @@ module oxygen_4sock() {
     } else atom(R_O, [ for (d = TET) [A, d] ], [[0,0,-1], "O", "II", "", label_flat, 8, "15.999"]);
 }
 
-module bond_CC() bond(L_CC, C, R_C, C, R_C, "");
-module bond_CO() bond(L_CO, C, R_C, A, R_O, "");
-module bond_CH() bond(L_CH, C, R_C, C, R_H, "");
-module bond_OH() bond(L_OH, A, R_O, C, R_H, "");
-module bond_CN() bond(L_CN, C, R_C, B, R_N, "");
-module bond_NH() bond(L_NH, B, R_N, C, R_H, "");
+module bond_CC() bond(L_CC, C, R_C, C, R_C, str(fmt2(L_CC), " Å"));
+module bond_CO() bond(L_CO, C, R_C, A, R_O, str(fmt2(L_CO), " Å"));
+module bond_CH() bond(L_CH, C, R_C, C, R_H, str(fmt2(L_CH), " Å"));
+module bond_OH() bond(L_OH, A, R_O, C, R_H, str(fmt2(L_OH), " Å"));
+module bond_CN() bond(L_CN, C, R_C, B, R_N, str(fmt2(L_CN), " Å"));
+module bond_NH() bond(L_NH, B, R_N, C, R_H, str(fmt2(L_NH), " Å"));
 // Двойная связь: стержень с витыми ключами на обоих концах (одна закрутка)
 module bond_dbl(L_A, r1, r2, lbl = "") {
     L = L_A * SCALE;  x1 = r1;  x2 = L - r2;  rod_len = x2 - x1;
@@ -550,7 +678,7 @@ module bond_dbl(L_A, r1, r2, lbl = "") {
             translate([x1, 0, 0]) rotate([0, -90, 0]) dbl_key_end(r1);
             translate([x2, 0, 0]) rotate([0,  90, 0]) dbl_key_end(r2);
         }
-        rod_label(x1 + hc_of(dbl_w) + 2, x2 - hc_of(dbl_w) - 2, lbl);
+        if (lbl != "none") rod_label(x1 + hc_of(dbl_w) + 2, x2 - hc_of(dbl_w) - 2, str(fmt2(L_A), " Å"));
         if (rod_flat > 0) { hc = (dbl_w + 2*(snap_clr-tip_clr) + 2 - rod_d)/2; translate([x1 + hc, -20, -rod_d/2 - 10 + rod_flat]) cube([rod_len - 2*hc, 40, 10]); }
     }
 }
@@ -562,6 +690,7 @@ module bond_trp(L_A, r1, r2, lbl = "") {
             translate([x1, 0, 0]) rotate([0, -90, 0]) trp_key_end(r1);
             translate([x2, 0, 0]) rotate([0,  90, 0]) trp_key_end(r2);
         }
+        if (lbl != "none") rod_label(x1 + hc_of(TRP_W) + 2, x2 - hc_of(TRP_W) - 2, str(fmt2(L_A), " Å"));
         if (rod_flat > 0) { hc = (dbl_w + 2*(snap_clr-tip_clr) + 2 - rod_d)/2; translate([x1 + hc, -20, -rod_d/2 - 10 + rod_flat]) cube([rod_len - 2*hc, 40, 10]); }
     }
 }
@@ -571,7 +700,31 @@ module bond_CdC() bond_dbl(L_CdC, R_C, R_C, "=");
 module bond_CdO() bond_dbl(L_CdO, R_C, R_O, "=");
 module bond_CtC() bond_trp(L_CtC, R_C, R_C, "≡");
 module bond_CtN() bond_trp(L_CtN, R_C, R_N, "≡");
-module bond_HH() bond(L_HH, C, R_H, C, R_H, "");
+L_NO = 1.15;                   // N=O в NO, Å
+L_CdN = 1.28; L_NdN = 1.25;    // C=N (имины), N=N (азосоединения), Å
+module bond_CdN() bond_dbl(L_CdN, R_C, R_N, "=");
+module bond_NdN() bond_dbl(L_NdN, R_N, R_N, "=");
+module bond_NdO() bond_dbl(L_NO, R_N, R_O, "=");   // N=O: линза с обеих сторон (двойной паз азота N_D ↔ двойной паз кислорода)
+module bond_HH() bond(L_HH, C, R_H, C, R_H, str(fmt2(L_HH), " Å"));
+// Универсальные одинарные связи (без маркировки): фиксированная длина видимого стержня, ключи одинаковые, подходят к любому одинарному пазу.
+// U1 — для C–C и C–O: стержень 79 мм (C–C получается 1.50 Å вместо 1.54, C–O 1.48 вместо 1.43).
+// U2 — для C–H, N–H, O–H: стержень 43 мм (C–H 1.03 Å вместо 1.09, N–H 1.01, O–H 1.01 вместо 0.96).
+uni_rod_1 = TD ? 79 : 39.5;
+uni_rod_2 = TD ? 43 : 21.5;
+module bond_U1() bond((uni_rod_1 + 2*R_C)/SCALE, C, R_C, C, R_C, "");
+module bond_U2() bond((uni_rod_2 + 2*R_C)/SCALE, C, R_C, C, R_C, "");
+// Универсальные двойные и тройная (без маркировки). Седло манжеты режется сферой R_C=28 (самый большой атом): на O/N (R=26) зазор у краёв ≤0,3 мм, натяга нет.
+// UD1 — C=C и C=N: стержень 63 мм (C=C 1.32 Å вместо 1.34, C=N 1.30 вместо 1.28).
+// UD2 — C=O, O=O, N=O, N=N: стержень 55 мм (C=O 1.21, O=O 1.19 вместо 1.21, N=O 1.19 вместо 1.15, N=N 1.19 вместо 1.25).
+// UT  — C≡C, C≡N, N≡N: стержень 50 мм (C≡C 1.18 вместо 1.20, C≡N 1.16, N≡N 1.13 вместо 1.10).
+uni_dbl_1 = TD ? 63 : 31.5;
+uni_dbl_2 = TD ? 55 : 27.5;
+uni_trp   = TD ? 50 : 25;
+module bond_UD1() bond_dbl((uni_dbl_1 + 2*R_C)/SCALE, R_C, R_C, "none");
+module bond_UD2() bond_dbl((uni_dbl_2 + 2*R_C)/SCALE, R_C, R_C, "none");
+module bond_UT()  bond_trp((uni_trp   + 2*R_C)/SCALE, R_C, R_C, "none");
+
+
 module assembly_H2() { color("white") rotate([0,90,0]) hydrogen(); color("gray") bond_HH(); color("white") translate([L_HH*SCALE,0,0]) rotate([0,-90,0]) hydrogen(); }
 // Проверка взаимной блокировки: пересечение полостей (должно быть непустым)
 module block_check() intersection() { dbl_socket(R_O); orient(O_S1) socket(A, R_O); }
@@ -581,10 +734,15 @@ module assembly_O2() {
     color("red") translate([L_OO*SCALE, 0, 0]) rotate([0, -90, 0]) oxygen();
 }
 // азот: 3 гнезда под связи + 1 под заглушку (все класса B)
+// sp²-азот (R–N=O, HO–N=O, имины): двойной паз N_D в плоскости T0–T1: 120° к T0 (одинарная), 130.5° к T1 (неподелённая пара — заглушка),
+// 54.9° к T2/T3 (как у двойных пазов углерода), 125° к тройному. Свободный NO: N + O через N=O, одинарный паз T0 остаётся пустым (неспаренный электрон).
+N_D = [-0.86603, 0, -0.5];
+N_D_PHASE = 66;
 module nitrogen() {
     difference() {
         atom(R_N, [ for (d = TET) [B, d] ], [[0,0,-1], "N", "III", "", label_flat, 7, "14.007"]);
         orient(-TET[3]) trp_socket(R_N);   // тройной паз N≡N — напротив неподелённой пары
+        orient(N_D) dbl_socket(R_N, N_D_PHASE);   // двойной паз N=O
     }
 }
 
@@ -647,6 +805,14 @@ if (PART == "bond_CdC") bond_CdC();
 if (PART == "bond_CdO") bond_CdO();
 if (PART == "bond_CtC") bond_CtC();
 if (PART == "bond_CtN") bond_CtN();
+if (PART == "bond_NdO") bond_NdO();
+if (PART == "bond_CdN") bond_CdN();
+if (PART == "bond_NdN") bond_NdN();
+if (PART == "bond_U1")  bond_U1();
+if (PART == "bond_U2")  bond_U2();
+if (PART == "bond_UD1") bond_UD1();
+if (PART == "bond_UD2") bond_UD2();
+if (PART == "bond_UT")  bond_UT();
 if (PART == "carbon_sp2") carbon_sp2();
 if (PART == "carbon_uni") carbon_uni();
 if (PART == "carbon_sp_dd") carbon_sp_dd();
@@ -682,3 +848,47 @@ echo(twist_A = ctw(A), twist_B = ctw(B), twist_C = ctw(C), twist_dbl = dbl_twist
 // макет для подбора фазы: шар углерода только с двойным пазом C_D
 module carbon_dproxy() difference() { sphere(R_C); orient(C_D) dbl_socket(R_C, C_D_PHASE); }
 if (PART == "carbon_dproxy") carbon_dproxy();
+
+// =====================================================================
+//  v2: дополнительные элементы для простых реакций
+//  Галогены и щелочные металлы — 1 одинарный паз (как водород); Mg, Ca — 2 одинарных (180°, оси под 45° к горизонту — печать без провисания потолка);
+//  S — тетраэдр: 2 одинарных + 2 двойных (H2S, SO2, H2SO4); P — 3 одинарных + 1 двойной (PH3, H3PO4).
+//  Металлы моделируются ионными связями «шарик–палочка»: связь Na–Cl ненаправленная, в кристалле их нет — набор показывает формульную единицу.
+//  Радиусы — не в масштабе для лёгких элементов (F ограничен снизу размером паза Ø15,6), но порядок сохранён: H,F < O,N < C < S,P,Cl < Mg < Na < Ca < K.
+// =====================================================================
+R_F  = TD ? 22 : 11;   R_Cl = TD ? 30 : 15;   R_Na = TD ? 34 : 17;   R_K  = TD ? 40 : 20;
+R_Mg = TD ? 32 : 16;   R_Ca = TD ? 38 : 19;   R_S  = TD ? 31 : 15.5;  R_P  = TD ? 31 : 15.5;
+function elab(sym, val, z, m) = [[0,0,-1], sym, val, "", label_flat, z, m];
+MG_AX = [cos(45), 0, sin(45)];
+module fluorine()   atom(R_F,  [ [C, [0,0,1]] ], elab("F",  "I",  9,  "18.998"));
+module chlorine()   atom(R_Cl, [ [C, [0,0,1]] ], elab("Cl", "I",  17, "35.45"));
+module sodium()     atom(R_Na, [ [C, [0,0,1]] ], elab("Na", "I",  11, "22.990"));
+module potassium()  atom(R_K,  [ [C, [0,0,1]] ], elab("K",  "I",  19, "39.098"));
+module magnesium()  atom(R_Mg, [ [C, MG_AX], [C, -MG_AX] ], elab("Mg", "II", 12, "24.305"));
+module calcium()    atom(R_Ca, [ [C, MG_AX], [C, -MG_AX] ], elab("Ca", "II", 20, "40.078"));
+module sulfur() {
+    difference() {
+        atom(R_S, [ [C, TET[2]], [C, TET[3]] ], elab("S", "II,IV,VI", 16, "32.06"));
+        orient(TET[0]) dbl_socket(R_S);
+        orient(TET[1]) dbl_socket(R_S);
+    }
+}
+module phosphorus() {
+    difference() {
+        atom(R_P, [ [C, TET[1]], [C, TET[2]], [C, TET[3]] ], elab("P", "III,V", 15, "30.974"));
+        orient(TET[0]) dbl_socket(R_P);
+    }
+}
+if (PART == "fluorine")   fluorine();
+if (PART == "chlorine")   chlorine();
+if (PART == "sodium")     sodium();
+if (PART == "potassium")  potassium();
+if (PART == "magnesium")  magnesium();
+if (PART == "calcium")    calcium();
+if (PART == "sulfur")     sulfur();
+if (PART == "phosphorus") phosphorus();
+// двойные связи с серой и фосфором (радиусы концов — реальные радиусы атомов)
+module bond_PdO() bond_dbl(1.48, R_P, R_O, "=");
+module bond_SdO() bond_dbl(1.43, R_S, R_O, "=");
+if (PART == "bond_PdO") bond_PdO();
+if (PART == "bond_SdO") bond_SdO();
