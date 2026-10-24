@@ -20,4 +20,4 @@ def go(glb, out, faces=15000):
     stage.GetRootLayer().Save(); UsdUtils.CreateNewUsdzPackage(Sdf.AssetPath(tmp),out); os.remove(tmp)
 if __name__=="__main__":
     for n in sys.argv[1:]:
-        go(f"pkg/02_molecules/{n}/{n}.glb", f"pkg/02_molecules/{n}/{n}.usdz"); print(n, round(os.path.getsize(f"pkg/02_molecules/{n}/{n}.usdz")/1e6,1),"MB", flush=True)
+        go(f"../02_molecules/{n}/{n}.glb", f"../02_molecules/{n}/{n}.usdz"); print(n, round(os.path.getsize(f"../02_molecules/{n}/{n}.usdz")/1e6,1),"MB", flush=True)

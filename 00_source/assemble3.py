@@ -1,4 +1,4 @@
-import sys, json, numpy as np, trimesh
+import sys, json, os, numpy as np, trimesh
 from chemlib import *
 from molecules import MOL, CHIRAL
 def bond_for(pa,ca,order):
@@ -49,8 +49,8 @@ def clashes(parts,edges,thr=1.5):
             v=vol(meshes[i],meshes[j])
             if v>thr: bad.append((f"{parts[i][0]}#{i}",f"{parts[j][0]}#{j}",round(v,1)))
     return meshes,bad
-if __name__=="__main__":
-    name=sys.argv[1]; parts=[];edges=[];steps=[]
+def assemble(name):
+    parts=[]; edges=[]; steps=[]
     build(MOL[name],np.eye(4),parts,edges,None,steps)
     info={"name":name,"parts":[p[0] for p in parts],"steps":steps}
     if name in CHIRAL: info["chirality"]=chirality(parts,edges)
@@ -58,5 +58,8 @@ if __name__=="__main__":
     sc=trimesh.Scene()
     for (pn,M,col),m in zip(parts,meshes):
         c=COL.get(col,COL.get(pn,(200,200,200))); m.visual=trimesh.visual.ColorVisuals(m,face_colors=list(c)+[255]); sc.add_geometry(m,node_name=f"{pn}_{len(sc.geometry)}")
-    import os; os.makedirs("asm_v2",exist_ok=True); sc.export(f"asm_v2/{name}.glb"); json.dump(info,open(f"asm_v2/{name}.json","w"),ensure_ascii=False,indent=1)
+    os.makedirs("asm_v2",exist_ok=True); sc.export(f"asm_v2/{name}.glb"); json.dump(info,open(f"asm_v2/{name}.json","w"),ensure_ascii=False,indent=1)
     print(name, "деталей",len(parts), "хиральность",info.get("chirality","—"), "столкновения:", bad or "нет")
+    return info
+if __name__=="__main__":
+    assemble(sys.argv[1])

@@ -1,15 +1,23 @@
-# Пластины по цветам на весь основной набор + bom.json; тестеры копируются из папки с готовыми 3MF
-import json, os, shutil
+# Пластины по цветам и bom.json. Запуск из 00_source, после rebuild_v2.py.
+import json, os
 from collections import Counter
-from docs import plates, PN
-main=["H2","CO2","CH4_methane","C2H2_acetylene","C2H4_ethylene","NH3_ammonia","H2O_water","C2H5OH_ethanol","CH3COOH_acetic_acid","Gly_glycine","Ala_alanine","Val_valine","Ser_serine","Asn_asparagine"]
-tot=Counter()
-for n in main: tot.update(json.load(open(f"asm3/{n}.json"))["parts"])
-files=plates("pkg/03_plates_by_color/full_set_main_molecules", tot)
-json.dump({"molecules":main,"counts":dict(tot),"files":files},open("pkg/03_plates_by_color/full_set_main_molecules/bom.json","w"),ensure_ascii=False,indent=1)
-print(sum(tot.values()),"деталей"); [print(f) for f in files]
-# тестеры
-os.makedirs("pkg/04_tester",exist_ok=True)
-for f in ["00_test_prism_and_keys.3mf","07_hex_7x_single_7x_double.3mf","06_hydrogens_and_single_bonds.3mf","04_carbon_all_hybridizations.3mf"]:
-    p=f"/mnt/user-data/outputs/chem_constructor_v0.26/tester/{f}"
-    if os.path.exists(p): shutil.copy(p,"pkg/04_tester/")
+from docs import plates
+
+V1 = ["H2","CO2","CH4_methane","C2H2_acetylene","C2H4_ethylene","NH3_ammonia","H2O_water","C2H5OH_ethanol","CH3COOH_acetic_acid",
+      "Gly_glycine","Ala_alanine","Val_valine","Ser_serine","Asn_asparagine","Thr_threonine","Leu_leucine","Asp_aspartic_acid","Lys_lysine",
+      "methyl_acetate_ester","Gly-Gly_dipeptide"]
+NEW = ["HF","HCl","F2","Cl2","NaCl","NaH","NaOH","KCl","KOH","MgCl2","MgO","CaCl2","CaOH2","H2S","SO2","H2SO4","PH3","H3PO4","CH3F","CH3Cl","NF3"]
+
+def bom(names, folder):
+    tot = Counter()
+    for n in names:
+        tot.update(json.load(open(f"asm_v2/{n}.json"))["parts"])
+    os.makedirs(folder, exist_ok=True)
+    files = plates(folder, tot, bed=256)
+    json.dump({"molecules": names, "counts": dict(tot), "files": files}, open(os.path.join(folder, "bom.json"), "w"), ensure_ascii=False, indent=1)
+    print(folder, sum(tot.values()), "деталей")
+    return files
+
+if __name__ == "__main__":
+    bom(V1, os.path.join("..", "03_plates", "full_set_v1_molecules"))
+    bom(NEW, os.path.join("..", "03_plates", "new_element_molecules"))

@@ -13,10 +13,24 @@ SOCK={"carbon":TET+[C_D,-C_D,C_T],                       # 0-3 одинарны�
 R={"carbon":28,"oxygen":26,"nitrogen":26,"hydrogen":22,"fluorine":22,"chlorine":30,"sodium":34,"potassium":40,"magnesium":32,"calcium":38,"sulfur":31,"phosphorus":31}
 BOND={("C","C"):("bond_CC",1.54),("C","H"):("bond_CH",1.09),("C","O"):("bond_CO",1.43),("C","N"):("bond_CN",1.47),("N","H"):("bond_NH",1.01),
       ("O","H"):("bond_OH",0.96),("H","H"):("bond_HH",0.74),("O","O"):("bond_OO",1.21),("N","N"):("bond_NN",1.10),
-      ("C","C",2):("bond_CdC",1.34),("C","O",2):("bond_CdO",1.21),("C","C",3):("bond_CtC",1.20),("C","N",3):("bond_CtN",1.16),("N","O",2):("bond_NdO",1.15),("C","N",2):("bond_CdN",1.28),("N","N",2):("bond_NdN",1.25)}
-EL={"carbon":"C","oxygen":"O","nitrogen":"N","hydrogen":"H"}
-POLAR={"bond_CO","bond_OH","bond_NH","bond_CN","bond_OO","bond_CdO","bond_CtN","bond_NdO"}
-COL={"carbon":(40,40,40),"oxygen":(215,30,30),"nitrogen":(50,75,230),"hydrogen":(240,240,240),"lp_cap_B":(240,180,200),"polar":(240,140,40),"nonpolar":(140,140,140)}
+      ("C","C",2):("bond_CdC",1.34),("C","O",2):("bond_CdO",1.21),("C","C",3):("bond_CtC",1.20),("C","N",3):("bond_CtN",1.16),("N","O",2):("bond_NdO",1.15),("C","N",2):("bond_CdN",1.28),("N","N",2):("bond_NdN",1.25),
+      ("S","O",2):("bond_SdO",1.43),("P","O",2):("bond_PdO",1.48),
+      ("H","F"):("bond_HF",0.92),("H","Cl"):("bond_HCl",1.27),("F","F"):("bond_FF",1.42),("Cl","Cl"):("bond_ClCl",1.99),
+      ("N","F"):("bond_NF",1.36),("C","F"):("bond_CF",1.35),("C","Cl"):("bond_CCl",1.77),
+      ("S","H"):("bond_SH",1.34),("P","H"):("bond_PH",1.42),("S","O"):("bond_SO",1.57),("P","O"):("bond_PO",1.60),
+      ("Na","Cl"):("bond_NaCl",2.36),("Na","O"):("bond_NaO",1.95),("Na","H"):("bond_NaH",1.89),
+      ("K","Cl"):("bond_KCl",2.67),("K","O"):("bond_KO",2.20),
+      ("Mg","Cl"):("bond_MgCl",2.18),("Mg","O"):("bond_MgO",1.77),
+      ("Ca","Cl"):("bond_CaCl",2.50),("Ca","O"):("bond_CaO",2.00)}
+EL={"carbon":"C","oxygen":"O","nitrogen":"N","hydrogen":"H","fluorine":"F","chlorine":"Cl","sodium":"Na","potassium":"K",
+    "magnesium":"Mg","calcium":"Ca","sulfur":"S","phosphorus":"P"}
+POLAR={"bond_CO","bond_OH","bond_NH","bond_CN","bond_OO","bond_CdO","bond_CtN","bond_NdO","bond_CdN","bond_SdO","bond_PdO",
+       "bond_HF","bond_HCl","bond_NF","bond_CF","bond_CCl","bond_SH","bond_PH","bond_SO","bond_PO",
+       "bond_NaCl","bond_NaO","bond_NaH","bond_KCl","bond_KO","bond_MgCl","bond_MgO","bond_CaCl","bond_CaO"}
+COL={"carbon":(40,40,40),"oxygen":(215,30,30),"nitrogen":(50,75,230),"hydrogen":(240,240,240),"lp_cap_B":(240,180,200),
+     "fluorine":(140,230,80),"chlorine":(30,170,40),"sodium":(170,90,220),"potassium":(110,40,160),
+     "magnesium":(0,110,50),"calcium":(220,200,160),"sulfur":(230,210,40),"phosphorus":(240,130,30),
+     "polar":(240,140,40),"nonpolar":(140,140,140)}
 def Rx(t): t=np.radians(t); c,s=np.cos(t),np.sin(t); return np.array([[1,0,0],[0,c,-s],[0,s,c]])
 def Ry(t): t=np.radians(t); c,s=np.cos(t),np.sin(t); return np.array([[c,0,s],[0,1,0],[-s,0,c]])
 def Rz(t): t=np.radians(t); c,s=np.cos(t),np.sin(t); return np.array([[c,-s,0],[s,c,0],[0,0,1]])

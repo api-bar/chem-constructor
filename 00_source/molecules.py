@@ -38,3 +38,28 @@ MOL.update({
  "Lys_lysine":    aa((1,CH2((1,CH2((1,CH2((1,CH2((1,NH2(),0)),0)),0)),0)),0)),
 })
 CHIRAL|={"Thr_threonine","Leu_leucine","Asp_aspartic_acid","Lys_lysine"}
+# Новые элементы. Пазы: F,Cl,Na,K,H — 0; Mg,Ca — 0 и 1 (180°); S — 0,1 двойные, 2,3 одинарные; P — 0 двойной, 1,2,3 одинарные.
+def X(name): return (name,{})
+MOL.update({
+ "HF": ("hydrogen",{0:(1,X("fluorine"),0)}),
+ "HCl": ("hydrogen",{0:(1,X("chlorine"),0)}),
+ "F2": ("fluorine",{0:(1,X("fluorine"),0)}),
+ "Cl2": ("chlorine",{0:(1,X("chlorine"),0)}),
+ "NaCl": ("sodium",{0:(1,X("chlorine"),0)}),
+ "NaH": ("sodium",{0:h()}),
+ "NaOH": ("sodium",{0:(1,OH(),0)}),
+ "KCl": ("potassium",{0:(1,X("chlorine"),0)}),
+ "KOH": ("potassium",{0:(1,OH(),0)}),
+ "MgCl2": ("magnesium",{0:(1,X("chlorine"),0),1:(1,X("chlorine"),0)}),
+ "MgO": ("magnesium",{0:(1,X("oxygen"),0)}),
+ "CaCl2": ("calcium",{0:(1,X("chlorine"),0),1:(1,X("chlorine"),0)}),
+ "CaOH2": ("calcium",{0:(1,OH(),0),1:(1,OH(),0)}),
+ "H2S": ("sulfur",{2:h(),3:h()}),
+ "SO2": ("sulfur",{0:(2,Od(),2),1:(2,Od(),2)}),
+ "H2SO4": ("sulfur",{0:(2,Od(),2),1:(2,Od(),2),2:(1,OH(),0),3:(1,OH(),0)}),
+ "PH3": ("phosphorus",{1:h(),2:h(),3:h()}),
+ "H3PO4": ("phosphorus",{0:(2,Od(),2),1:(1,OH(),0),2:(1,OH(),0),3:(1,OH(),0)}),
+ "CH3F": ("carbon",{0:(1,X("fluorine"),0),1:h(),2:h(),3:h()}),
+ "CH3Cl": ("carbon",{0:(1,X("chlorine"),0),1:h(),2:h(),3:h()}),
+ "NF3": ("nitrogen",{0:(1,X("fluorine"),0),1:(1,X("fluorine"),0),2:(1,X("fluorine"),0),3:"cap"}),
+})
